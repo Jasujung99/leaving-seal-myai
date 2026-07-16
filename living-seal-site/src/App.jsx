@@ -458,7 +458,10 @@ function App() {
             <h2 id="access-title">Bring your intelligence home.</h2>
             <p>Join a small release group testing local memory, offline search, and user-held context.</p>
           </div>
-          <MagneticButton href="mailto:access@livingseal.local?subject=Living%20Seal%20private%20access" className="access-cta">
+          <MagneticButton
+            href="mailto:access@livingseal.local?subject=Living%20Seal%20private%20access"
+            className="access-cta"
+          >
             Request private access <ArrowRight {...iconProps} />
           </MagneticButton>
         </section>

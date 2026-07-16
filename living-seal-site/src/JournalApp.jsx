@@ -71,7 +71,7 @@ function getRecordPreview(record) {
 
 function SealMark() {
   return (
-    <a className="quiet-mark" href="/minimal.html" aria-label="Living Seal 브랜드 소개">
+    <a className="quiet-mark" href="/journal.html" aria-label="Living Seal 기록 소개">
       <img src="/seal-mark.svg" width="24" height="24" alt="" />
     </a>
   );
@@ -374,8 +374,8 @@ function JournalApp() {
               </div>
             ) : null}
 
-            <a className="library-brand-link" href="/minimal.html">
-              Living Seal 소개
+            <a className="library-brand-link" href="/journal.html">
+              기록에 대하여
             </a>
           </main>
         </>

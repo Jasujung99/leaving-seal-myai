@@ -96,8 +96,8 @@ function Header({ theme, onToggleTheme }) {
           >
             {nextTheme}
           </button>
-          <a className="nav-cta" href="/">
-            Open notes
+          <a className="nav-cta" href="#product">
+            Meet the Seal
           </a>
         </div>
       </nav>
@@ -166,8 +166,8 @@ function Hero() {
           }}
           transition={{ duration: 0.78, ease: [0.16, 1, 0.3, 1] }}
         >
-          <a className="button button-primary" href="/">
-            Open my notes
+          <a className="button button-primary" href="#product">
+            Meet the Seal
           </a>
           <a className="text-link" href="#privacy">
             How privacy works

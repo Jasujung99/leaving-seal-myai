@@ -1166,9 +1166,7 @@ h1 {
   }
 
   .nav-cta {
-    min-height: 38px;
-    padding-inline: 13px;
-    font-size: 0.76rem;
+    display: none;
   }
 
   .section-shell,

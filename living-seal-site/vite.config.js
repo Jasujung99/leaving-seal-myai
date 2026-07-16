@@ -8,6 +8,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         journal: `${root}index.html`,
+        journalLanding: `${root}journal.html`,
         minimal: `${root}minimal.html`,
         original: `${root}original.html`,
       },
