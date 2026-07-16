@@ -1,22 +1,4 @@
 :root {
-  color-scheme: light;
-  --journal-page: #f4f2eb;
-  --journal-surface: #eeece4;
-  --journal-text: #14241f;
-  --journal-text-soft: #42534d;
-  --journal-muted: #747e79;
-  --journal-faint: #9da39f;
-  --journal-line: rgba(20, 36, 31, 0.11);
-  --journal-line-strong: rgba(20, 36, 31, 0.2);
-  --journal-accent: #9a5f25;
-  --journal-danger: #9f2f2d;
-  --journal-danger-bg: #f7e7e6;
-  --journal-focus: #9a5f25;
-  --ui-font: "Outfit", "Pretendard", "SUIT", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --note-font: "Noto Serif KR", "Nanum Myeongjo", "Batang", serif;
-}
-
-:root[data-journal-theme="dark"] {
   color-scheme: dark;
   --journal-page: #071815;
   --journal-surface: #0b211d;
@@ -30,6 +12,24 @@
   --journal-danger: #efb1a7;
   --journal-danger-bg: rgba(159, 47, 45, 0.15);
   --journal-focus: #d18a43;
+  --ui-font: "Outfit", "Pretendard", "SUIT", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --note-font: "Noto Serif CJK KR", "Noto Serif KR", "AppleMyungjo", "Batang", serif;
+}
+
+:root[data-journal-theme="light"] {
+  color-scheme: light;
+  --journal-page: #f4f2eb;
+  --journal-surface: #eeece4;
+  --journal-text: #14241f;
+  --journal-text-soft: #42534d;
+  --journal-muted: #747e79;
+  --journal-faint: #9da39f;
+  --journal-line: rgba(20, 36, 31, 0.11);
+  --journal-line-strong: rgba(20, 36, 31, 0.2);
+  --journal-accent: #9a5f25;
+  --journal-danger: #9f2f2d;
+  --journal-danger-bg: #f7e7e6;
+  --journal-focus: #9a5f25;
 }
 
 * {
@@ -172,6 +172,12 @@ textarea:focus-visible {
 
 .save-action:hover {
   color: var(--journal-text);
+}
+
+.mode-action {
+  color: var(--journal-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
 }
 
 .quiet-mark {
@@ -329,50 +335,93 @@ textarea:focus-visible {
   color: var(--journal-danger);
 }
 
+.library-view {
+  position: relative;
+  min-height: calc(100dvh - 60px - env(safe-area-inset-top));
+  overflow: clip;
+}
+
+.pull-note-cue {
+  display: none;
+}
+
 .library-canvas {
   width: min(calc(100% - 48px), 680px);
   min-height: calc(100dvh - 60px - env(safe-area-inset-top));
   margin-inline: auto;
-  padding: clamp(42px, 8vh, 80px) 0 calc(72px + env(safe-area-inset-bottom));
+  padding: clamp(48px, 8vh, 78px) 0 calc(72px + env(safe-area-inset-bottom));
+  transform: translateY(var(--pull-distance, 0));
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .library-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: clamp(52px, 8vh, 82px);
+  display: block;
+  margin-bottom: clamp(30px, 5vh, 48px);
+  padding-bottom: clamp(38px, 6vh, 56px);
+  border-bottom: 1px solid var(--journal-line);
+  text-align: center;
 }
 
 .library-heading h1 {
   margin: 0;
   font-family: var(--note-font);
-  font-size: clamp(1.55rem, 3vw, 1.85rem);
+  font-size: clamp(1.6rem, 3vw, 1.9rem);
   font-weight: 400;
   letter-spacing: -0.035em;
+  line-height: 1.35;
 }
 
-.library-heading span {
-  color: var(--journal-faint);
-  font-size: 0.68rem;
-  font-variant-numeric: tabular-nums;
+.library-title-button,
+.library-title-input {
+  max-width: 100%;
+  margin: 0;
+  padding: 2px 5px;
+  border: 0;
+  background: transparent;
+  color: var(--journal-text);
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: center;
+}
+
+.library-title-button {
+  cursor: text;
+}
+
+.library-title-button:hover {
+  color: var(--journal-accent);
+}
+
+.library-title-input {
+  width: min(100%, 440px);
+  border-bottom: 1px solid var(--journal-line-strong);
+  border-radius: 0;
+  outline: 0;
+}
+
+.library-heading > p {
+  margin: clamp(24px, 4vh, 36px) 0 0;
+  color: var(--journal-muted);
+  font-family: var(--note-font);
+  font-size: clamp(0.9rem, 1.8vw, 1rem);
+  line-height: 1.7;
 }
 
 .record-list {
-  border-top: 1px solid var(--journal-line);
+  border: 0;
 }
 
 .record-row {
-  border-bottom: 1px solid var(--journal-line);
+  border: 0;
 }
 
 .record-row button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   width: 100%;
-  min-height: 92px;
-  padding: 25px 0 24px;
+  min-height: 94px;
+  padding: 25px 0;
   border: 0;
   background: transparent;
   color: var(--journal-text);
@@ -393,9 +442,8 @@ textarea:focus-visible {
 }
 
 .record-copy {
-  display: grid;
+  display: block;
   min-width: 0;
-  gap: 8px;
 }
 
 .record-copy strong {
@@ -409,19 +457,10 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
-.record-copy small {
-  overflow: hidden;
-  color: var(--journal-muted);
-  font-family: var(--note-font);
-  font-size: 0.78rem;
-  line-height: 1.5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .record-row time {
-  padding-top: 4px;
+  padding: 0;
   color: var(--journal-faint);
+  font-family: var(--note-font);
   font-size: 0.67rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -450,6 +489,11 @@ textarea:focus-visible {
 .empty-library p {
   margin: 0;
   color: var(--journal-faint);
+}
+
+.empty-library span {
+  color: var(--journal-faint);
+  font-size: 0.7rem;
 }
 
 .empty-library button {
@@ -499,6 +543,58 @@ textarea:focus-visible {
     padding-inline: 20px;
   }
 
+  .library-view {
+    min-height: calc(100dvh - 54px - env(safe-area-inset-top));
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+  }
+
+  .pull-note-cue {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    height: 72px;
+    color: var(--journal-faint);
+    pointer-events: none;
+    transform: translateY(calc(-72px + var(--pull-distance, 0px)));
+    opacity: var(--pull-progress, 0);
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 180ms ease;
+  }
+
+  .pull-note-cue span {
+    position: absolute;
+    top: 20px;
+    width: 24px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(var(--pull-progress, 0));
+  }
+
+  .pull-note-cue p {
+    margin: 18px 0 0;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+  }
+
+  .library-view.is-pulling .library-canvas,
+  .library-view.is-pulling .pull-note-cue {
+    transition: none;
+  }
+
+  .library-view.is-pulling .library-canvas {
+    will-change: transform;
+  }
+
+  .library-view.is-pull-ready .pull-note-cue {
+    color: var(--journal-accent);
+  }
+
   .note-canvas,
   .library-canvas {
     width: calc(100% - 48px);
@@ -532,16 +628,22 @@ textarea:focus-visible {
   }
 
   .library-canvas {
-    padding-top: 48px;
+    padding-top: 50px;
   }
 
   .library-heading {
-    margin-bottom: 54px;
+    margin-bottom: 26px;
+    padding-bottom: 42px;
+  }
+
+  .library-heading > p {
+    margin-top: 26px;
+    font-size: 0.94rem;
   }
 
   .record-row button {
-    min-height: 86px;
-    padding-block: 23px 22px;
+    min-height: 90px;
+    padding-block: 25px;
     gap: 18px;
   }
 

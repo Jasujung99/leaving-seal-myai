@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { recordStore } from "./recordStore";
 
-const THEME_STORAGE_KEY = "living-seal-journal-theme:v2";
+const THEME_STORAGE_KEY = "living-seal-journal-theme:v3";
+const JOURNAL_TITLE_STORAGE_KEY = "living-seal-journal-title:v1";
+const DEFAULT_JOURNAL_TITLE = "이야기 1";
+const PULL_TRIGGER = 68;
+const PULL_MAX = 96;
 
 function useTheme() {
   const [theme, setTheme] = useState(() => {
     try {
       const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
-      return saved === "light" || saved === "dark" ? saved : "light";
+      return saved === "light" || saved === "dark" ? saved : "dark";
     } catch {
-      return "light";
+      return "dark";
     }
   });
 
@@ -64,11 +68,6 @@ function getRecordTitle(record) {
   return firstLine || "제목 없는 기록";
 }
 
-function getRecordPreview(record) {
-  if (!record.title?.trim()) return "";
-  return record.body.replace(/\s+/g, " ").trim();
-}
-
 function SealMark() {
   return (
     <a className="quiet-mark" href="/journal.html" aria-label="Living Seal 기록 소개">
@@ -80,12 +79,32 @@ function SealMark() {
 function JournalApp() {
   const titleRef = useRef(null);
   const bodyRef = useRef(null);
+  const journalTitleRef = useRef(null);
+  const titleEditCancelledRef = useRef(false);
+  const libraryViewRef = useRef(null);
+  const pullGestureRef = useRef({
+    active: false,
+    startX: 0,
+    startY: 0,
+    distance: 0,
+  });
   const [theme, setTheme] = useTheme();
-  const [view, setView] = useState("editor");
+  const [view, setView] = useState("library");
   const [records, setRecords] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [journalTitle, setJournalTitle] = useState(() => {
+    try {
+      return window.localStorage.getItem(JOURNAL_TITLE_STORAGE_KEY) || DEFAULT_JOURNAL_TITLE;
+    } catch {
+      return DEFAULT_JOURNAL_TITLE;
+    }
+  });
+  const [journalTitleDraft, setJournalTitleDraft] = useState("");
+  const [editingJournalTitle, setEditingJournalTitle] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isPulling, setIsPulling] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -123,6 +142,51 @@ function JournalApp() {
     window.requestAnimationFrame(() => focusTarget?.focus());
   }, [view, activeId]);
 
+  useEffect(() => {
+    if (!editingJournalTitle) return;
+    window.requestAnimationFrame(() => {
+      journalTitleRef.current?.focus();
+      journalTitleRef.current?.select();
+    });
+  }, [editingJournalTitle]);
+
+  useEffect(() => {
+    if (view !== "library") return undefined;
+    const libraryView = libraryViewRef.current;
+    if (!libraryView) return undefined;
+
+    const handleTouchMove = (event) => {
+      const gesture = pullGestureRef.current;
+      if (!gesture.active || event.touches.length !== 1) return;
+
+      const touch = event.touches[0];
+      const deltaY = touch.clientY - gesture.startY;
+      const deltaX = touch.clientX - gesture.startX;
+
+      if (Math.abs(deltaX) > Math.max(deltaY, 8)) {
+        gesture.active = false;
+        gesture.distance = 0;
+        setPullDistance(0);
+        setIsPulling(false);
+        return;
+      }
+
+      if (deltaY <= 6) {
+        gesture.distance = 0;
+        setPullDistance(0);
+        return;
+      }
+
+      event.preventDefault();
+      const nextDistance = Math.min(PULL_MAX, (deltaY - 6) * 0.66);
+      gesture.distance = nextDistance;
+      setPullDistance(nextDistance);
+    };
+
+    libraryView.addEventListener("touchmove", handleTouchMove, { passive: false });
+    return () => libraryView.removeEventListener("touchmove", handleTouchMove);
+  }, [view]);
+
   const announce = (message) => {
     setAnnouncement("");
     window.requestAnimationFrame(() => setAnnouncement(message));
@@ -153,6 +217,108 @@ function JournalApp() {
   const closeEditor = () => {
     resetEditor();
     setView("library");
+  };
+
+  useEffect(() => {
+    if (view !== "library") return undefined;
+
+    const openFromKeyboard = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "n") {
+        event.preventDefault();
+        openBlankNote();
+        announce("새 노트를 열었어요.");
+      }
+    };
+
+    window.addEventListener("keydown", openFromKeyboard);
+    return () => window.removeEventListener("keydown", openFromKeyboard);
+  }, [view]);
+
+  const beginJournalTitleEdit = () => {
+    titleEditCancelledRef.current = false;
+    setJournalTitleDraft(journalTitle);
+    setEditingJournalTitle(true);
+  };
+
+  const commitJournalTitle = (value) => {
+    if (titleEditCancelledRef.current) {
+      titleEditCancelledRef.current = false;
+      setEditingJournalTitle(false);
+      return;
+    }
+
+    const nextTitle = value.trim();
+    if (!nextTitle) {
+      setEditingJournalTitle(false);
+      announce("기록장 제목은 비워둘 수 없어요.");
+      return;
+    }
+
+    setJournalTitle(nextTitle);
+    setEditingJournalTitle(false);
+    try {
+      window.localStorage.setItem(JOURNAL_TITLE_STORAGE_KEY, nextTitle);
+      announce("기록장 제목을 바꿨어요.");
+    } catch {
+      announce("제목을 이 브라우저에 저장하지 못했어요.");
+    }
+  };
+
+  const journalTitleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitJournalTitle(event.currentTarget.value);
+    }
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      titleEditCancelledRef.current = true;
+      setJournalTitleDraft(journalTitle);
+      setEditingJournalTitle(false);
+    }
+  };
+
+  const startPull = (event) => {
+    const scrollTop = document.scrollingElement?.scrollTop || window.scrollY;
+    if (
+      view !== "library" ||
+      editingJournalTitle ||
+      !window.matchMedia("(max-width: 600px)").matches ||
+      scrollTop > 1 ||
+      event.touches.length !== 1
+    ) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    pullGestureRef.current = {
+      active: true,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      distance: 0,
+    };
+    setIsPulling(true);
+    setPullDistance(0);
+  };
+
+  const finishPull = () => {
+    const shouldOpenNote = pullGestureRef.current.distance >= PULL_TRIGGER;
+    pullGestureRef.current.active = false;
+    pullGestureRef.current.distance = 0;
+    setIsPulling(false);
+    setPullDistance(0);
+
+    if (shouldOpenNote) {
+      openBlankNote();
+      announce("새 노트를 열었어요.");
+    }
+  };
+
+  const cancelPull = () => {
+    pullGestureRef.current.active = false;
+    pullGestureRef.current.distance = 0;
+    setIsPulling(false);
+    setPullDistance(0);
   };
 
   const saveRecord = async () => {
@@ -318,66 +484,123 @@ function JournalApp() {
         <>
           <header className="app-bar library-bar">
             <button
-              className="bar-action muted-action"
+              className="bar-action muted-action mode-action"
               type="button"
               onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-              aria-label={`${theme === "dark" ? "밝은" : "어두운"} 화면으로 전환`}
+              aria-label={`${theme === "dark" ? "낮" : "밤"} 모드로 전환`}
+              title={`${theme === "dark" ? "낮" : "밤"} 모드로 전환`}
             >
-              {theme === "dark" ? "밝게" : "어둡게"}
+              {theme === "dark" ? "낮" : "밤"}
             </button>
             <SealMark />
-            <button className="bar-action save-action" type="button" onClick={openBlankNote}>
+            <button
+              className="bar-action save-action"
+              type="button"
+              onClick={openBlankNote}
+              aria-keyshortcuts="Control+N Meta+N"
+              title="새 글 (Ctrl 또는 Command + N)"
+            >
               새 글
             </button>
           </header>
 
-          <main className="library-canvas" id="journal-main">
-            <div className="library-heading">
-              <h1>나의 기록</h1>
-              {!loading && !loadError ? <span>{records.length}</span> : null}
+          <div
+            ref={libraryViewRef}
+            className={`library-view${isPulling ? " is-pulling" : ""}${
+              pullDistance >= PULL_TRIGGER ? " is-pull-ready" : ""
+            }`}
+            style={{
+              "--pull-distance": `${pullDistance}px`,
+              "--pull-progress": Math.min(pullDistance / PULL_TRIGGER, 1),
+            }}
+            onTouchStart={startPull}
+            onTouchEnd={finishPull}
+            onTouchCancel={cancelPull}
+          >
+            <div className="pull-note-cue" aria-hidden="true">
+              <span />
+              <p>
+                {pullDistance >= PULL_TRIGGER
+                  ? "놓으면 새 노트가 열립니다"
+                  : "아래로 당겨 새 노트 열기"}
+              </p>
             </div>
 
-            {loadError ? (
-              <div className="storage-warning" role="alert">
-                <strong>기록을 불러오지 못했어요.</strong>
-                <p>{loadError} 기존 데이터는 덮어쓰지 않았습니다.</p>
-              </div>
-            ) : null}
+            <main className="library-canvas" id="journal-main">
+              <section className="library-heading" aria-label="기록장 제목">
+                <h1>
+                  {editingJournalTitle ? (
+                    <input
+                      ref={journalTitleRef}
+                      className="library-title-input"
+                      type="text"
+                      value={journalTitleDraft}
+                      maxLength={40}
+                      aria-label="기록장 제목"
+                      onChange={(event) => setJournalTitleDraft(event.target.value)}
+                      onBlur={(event) => commitJournalTitle(event.currentTarget.value)}
+                      onKeyDown={journalTitleKeyDown}
+                    />
+                  ) : (
+                    <button
+                      className="library-title-button"
+                      type="button"
+                      onClick={beginJournalTitleEdit}
+                      aria-label={`기록장 제목 변경: ${journalTitle}`}
+                    >
+                      {journalTitle}
+                    </button>
+                  )}
+                </h1>
+                <p>
+                  {editingJournalTitle
+                    ? "Enter로 저장하고 Esc로 취소하세요"
+                    : "여기를 눌러서 제목을 변경하세요"}
+                </p>
+                {!loading && !loadError ? (
+                  <span className="sr-only">총 {records.length}개의 기록</span>
+                ) : null}
+              </section>
 
-            {loading ? <p className="library-state">기록을 불러오는 중입니다.</p> : null}
+              {loadError ? (
+                <div className="storage-warning" role="alert">
+                  <strong>기록을 불러오지 못했어요.</strong>
+                  <p>{loadError} 기존 데이터는 덮어쓰지 않았습니다.</p>
+                </div>
+              ) : null}
 
-            {!loading && !loadError && records.length === 0 ? (
-              <div className="empty-library">
-                <p>아직 기록이 없습니다.</p>
-                <button type="button" onClick={openBlankNote}>
-                  빈 노트 열기
-                </button>
-              </div>
-            ) : null}
+              {loading ? <p className="library-state">기록을 불러오는 중입니다.</p> : null}
 
-            {!loading && !loadError && records.length > 0 ? (
-              <div className="record-list">
-                {records.map((record) => {
-                  const preview = getRecordPreview(record);
-                  return (
+              {!loading && !loadError && records.length === 0 ? (
+                <div className="empty-library">
+                  <p>아직 기록이 없습니다.</p>
+                  <span>모바일에서는 화면을 아래로 당겨 시작할 수 있어요.</span>
+                  <button type="button" onClick={openBlankNote}>
+                    첫 기록 쓰기
+                  </button>
+                </div>
+              ) : null}
+
+              {!loading && !loadError && records.length > 0 ? (
+                <div className="record-list">
+                  {records.map((record) => (
                     <article className="record-row" key={record.id}>
                       <button type="button" onClick={() => openRecord(record)}>
                         <span className="record-copy">
                           <strong>{getRecordTitle(record)}</strong>
-                          {preview ? <small>{preview}</small> : null}
                         </span>
                         <time dateTime={record.updatedAt}>{formatListDate(record.updatedAt)}</time>
                       </button>
                     </article>
-                  );
-                })}
-              </div>
-            ) : null}
+                  ))}
+                </div>
+              ) : null}
 
-            <a className="library-brand-link" href="/journal.html">
-              기록에 대하여
-            </a>
-          </main>
+              <a className="library-brand-link" href="/journal.html">
+                기록에 대하여
+              </a>
+            </main>
+          </div>
         </>
       )}
 

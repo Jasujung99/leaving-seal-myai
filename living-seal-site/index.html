@@ -7,9 +7,20 @@
       name="description"
       content="생각이 지나가기 전에 짧게 남기는 Living Seal 개인 기록장."
     />
-    <meta name="theme-color" content="#f4f2eb" />
+    <meta name="theme-color" content="#071815" />
     <link rel="icon" href="/seal-mark.svg" type="image/svg+xml" />
     <title>나의 기록 | Living Seal</title>
+    <script>
+      (() => {
+        try {
+          const savedTheme = window.localStorage.getItem("living-seal-journal-theme:v3");
+          document.documentElement.dataset.journalTheme =
+            savedTheme === "light" ? "light" : "dark";
+        } catch {
+          document.documentElement.dataset.journalTheme = "dark";
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
