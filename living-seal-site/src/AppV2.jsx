@@ -69,7 +69,7 @@ function Reveal({ children, className = "", delay = 0 }) {
 function Brand() {
   return (
     <a className="wordmark" href="#top" aria-label="Living Seal home">
-      <img src="/seal-mark.svg" alt="" width="34" height="34" />
+      <img src="./seal-mark.svg" alt="" width="34" height="34" />
       <span>LIVING SEAL</span>
     </a>
   );

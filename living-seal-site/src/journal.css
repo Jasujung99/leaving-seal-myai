@@ -174,10 +174,8 @@ textarea:focus-visible {
   color: var(--journal-text);
 }
 
-.mode-action {
-  color: var(--journal-muted);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
+.bar-spacer {
+  width: 44px;
 }
 
 .quiet-mark {

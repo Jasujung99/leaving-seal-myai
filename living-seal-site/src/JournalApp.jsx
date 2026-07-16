@@ -8,7 +8,7 @@ const PULL_TRIGGER = 68;
 const PULL_MAX = 96;
 
 function useTheme() {
-  const [theme, setTheme] = useState(() => {
+  const [theme] = useState(() => {
     try {
       const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
       return saved === "light" || saved === "dark" ? saved : "dark";
@@ -30,7 +30,6 @@ function useTheme() {
     }
   }, [theme]);
 
-  return [theme, setTheme];
 }
 
 function formatListDate(value) {
@@ -70,8 +69,8 @@ function getRecordTitle(record) {
 
 function SealMark() {
   return (
-    <a className="quiet-mark" href="/journal.html" aria-label="Living Seal 기록 소개">
-      <img src="/seal-mark.svg" width="24" height="24" alt="" />
+    <a className="quiet-mark" href="./journal.html" aria-label="Living Seal 기록 소개">
+      <img src="./seal-mark.svg" width="24" height="24" alt="" />
     </a>
   );
 }
@@ -88,7 +87,7 @@ function JournalApp() {
     startY: 0,
     distance: 0,
   });
-  const [theme, setTheme] = useTheme();
+  useTheme();
   const [view, setView] = useState("library");
   const [records, setRecords] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -483,15 +482,7 @@ function JournalApp() {
       ) : (
         <>
           <header className="app-bar library-bar">
-            <button
-              className="bar-action muted-action mode-action"
-              type="button"
-              onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-              aria-label={`${theme === "dark" ? "낮" : "밤"} 모드로 전환`}
-              title={`${theme === "dark" ? "낮" : "밤"} 모드로 전환`}
-            >
-              {theme === "dark" ? "낮" : "밤"}
-            </button>
+            <span className="bar-spacer" aria-hidden="true" />
             <SealMark />
             <button
               className="bar-action save-action"
@@ -596,7 +587,7 @@ function JournalApp() {
                 </div>
               ) : null}
 
-              <a className="library-brand-link" href="/journal.html">
+              <a className="library-brand-link" href="./journal.html">
                 기록에 대하여
               </a>
             </main>

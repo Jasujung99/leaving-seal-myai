@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
+  base: process.env.VITE_BASE_PATH || "/",
   build: {
     rollupOptions: {
       input: {

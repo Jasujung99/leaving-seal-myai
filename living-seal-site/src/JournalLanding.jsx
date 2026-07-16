@@ -1,6 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "framer-motion";
+
+const THEME_STORAGE_KEY = "living-seal-journal-theme:v3";
+
+function useSharedTheme() {
+  const [theme, setTheme] = useState(() => {
+    try {
+      return window.localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+    } catch {
+      return "dark";
+    }
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.journalTheme = theme;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme === "dark" ? "#071815" : "#f4f2eb");
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // 테마 저장이 막혀도 소개와 기록 기능은 그대로 사용할 수 있다.
+    }
+  }, [theme]);
+
+  return [theme, setTheme];
+}
 
 const notes = [
   { title: "무슨 일이 일어난 건가요.", preview: "천천히 적고 나니 마음이 먼저 알고 있었다.", date: "07.17" },
@@ -46,7 +73,7 @@ function Reveal({ children, className = "", delay = 0 }) {
 function Brand({ compact = false }) {
   return (
     <span className={`notes-brand${compact ? " notes-brand--compact" : ""}`}>
-      <img src="/seal-mark.svg" width="28" height="28" alt="" />
+      <img src="./seal-mark.svg" width="28" height="28" alt="" />
       <span>
         <strong>LIVING SEAL</strong>
         <small>NOTES</small>
@@ -57,7 +84,7 @@ function Brand({ compact = false }) {
 
 function AppLink({ children, className = "" }) {
   return (
-    <a className={`app-link ${className}`.trim()} href="/">
+    <a className={`app-link ${className}`.trim()} href="./">
       <span>{children}</span>
       <ArrowRight size={16} weight="regular" aria-hidden="true" />
     </a>
@@ -69,7 +96,7 @@ function NoteSurface() {
     <div className="note-surface" role="img" aria-label="Living Seal 기록 화면 미리보기">
       <div className="note-surface__bar">
         <span>취소</span>
-        <img src="/seal-mark.svg" width="24" height="24" alt="" />
+        <img src="./seal-mark.svg" width="24" height="24" alt="" />
         <span className="note-surface__save">완료</span>
       </div>
       <div className="note-surface__paper">
@@ -92,8 +119,8 @@ function LibrarySurface() {
   return (
     <div className="library-surface" role="img" aria-label="Living Seal 기록 목록 미리보기">
       <div className="library-surface__bar">
-        <span>어둡게</span>
-        <img src="/seal-mark.svg" width="24" height="24" alt="" />
+        <span aria-hidden="true" />
+        <img src="./seal-mark.svg" width="24" height="24" alt="" />
         <span>새 글</span>
       </div>
       <div className="library-surface__content">
@@ -119,6 +146,7 @@ function LibrarySurface() {
 
 function JournalLanding() {
   const reduceMotion = useReducedMotion();
+  const [theme, setTheme] = useSharedTheme();
 
   return (
     <div className="notes-landing">
@@ -127,14 +155,25 @@ function JournalLanding() {
       </a>
 
       <header className="notes-header">
-        <a href="/journal.html" aria-label="Living Seal Notes 처음으로">
+        <a href="./journal.html" aria-label="Living Seal Notes 처음으로">
           <Brand />
         </a>
         <nav aria-label="페이지 안내">
           <a href="#method">기록 방식</a>
           <a href="#storage">보관</a>
         </nav>
-        <AppLink className="header-app-link">기록 열기</AppLink>
+        <div className="notes-header__actions">
+          <button
+            className="notes-mode-toggle"
+            type="button"
+            onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+            aria-label={`${theme === "dark" ? "낮" : "밤"} 모드로 전환`}
+            title={`${theme === "dark" ? "낮" : "밤"} 모드로 전환`}
+          >
+            {theme === "dark" ? "낮" : "밤"}
+          </button>
+          <AppLink className="header-app-link">기록 열기</AppLink>
+        </div>
       </header>
 
       <main id="main-content">
@@ -227,7 +266,7 @@ function JournalLanding() {
       <footer className="notes-footer">
         <Brand compact />
         <p>Local by nature.</p>
-        <a href="/">나의 기록</a>
+        <a href="./">나의 기록</a>
       </footer>
     </div>
   );
