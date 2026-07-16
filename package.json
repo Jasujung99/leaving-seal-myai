@@ -1,0 +1,9 @@
+{
+  "name": "living-seal-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix living-seal-site run dev --",
+    "build": "npm --prefix living-seal-site run build --",
+    "preview": "npm --prefix living-seal-site run preview --"
+  }
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Living Seal mark</title>
+  <rect width="120" height="120" rx="26" fill="#061e1a"/>
+  <g fill="none" stroke="#d3cfc5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="24" y="24" width="72" height="72" rx="21" transform="rotate(45 60 60)"/>
+    <path d="M19 60C30 43 45 35 60 35s30 8 41 25C90 77 75 85 60 85S30 77 19 60Z"/>
+  </g>
+</svg>
